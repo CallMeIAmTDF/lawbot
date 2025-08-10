@@ -29,6 +29,9 @@ public class CustomAuthenticationEntryPoint implements AuthenticationEntryPoint 
         res.setCode(HttpStatus.UNAUTHORIZED.value());
         response.setContentType(MediaType.APPLICATION_JSON_VALUE);
 
+        response.setHeader("Access-Control-Allow-Origin", "*");
+        response.setHeader("Access-Control-Allow-Headers", "*");
+
         String errorMessage = Optional.ofNullable(authException.getCause()) // NULL
                 .map(Throwable::getMessage)
                 .orElse(authException.getMessage());

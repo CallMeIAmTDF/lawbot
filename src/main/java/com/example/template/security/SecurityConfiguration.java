@@ -3,6 +3,8 @@ package com.example.template.security;
 import com.example.template.util.constant.PredefinedRole;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
+import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
@@ -12,12 +14,20 @@ import org.springframework.security.oauth2.server.resource.authentication.JwtAut
 import org.springframework.security.oauth2.server.resource.authentication.JwtGrantedAuthoritiesConverter;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
+import org.springframework.web.cors.CorsConfiguration;
+import org.springframework.web.cors.CorsConfigurationSource;
+import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
+
+import java.util.List;
+
 @Configuration
 @EnableWebSecurity
 @EnableMethodSecurity
 public class SecurityConfiguration {
     private static final String[] PUBLIC_ENDPOINTS = {
             "/auth/**",
+            "/v3/api-docs/**", "/swagger-ui/**", "/swagger-ui/index.html#/",
+            "/users/forgotPassword",
     };
 
     private final CustomJwtDecoder customJwtDecoder;
@@ -34,9 +44,14 @@ public class SecurityConfiguration {
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity httpSecurity,
                                            CustomAuthenticationEntryPoint customAuthenticationEntryPoint) throws Exception {
-        httpSecurity.authorizeHttpRequests(request -> request.requestMatchers(PUBLIC_ENDPOINTS)
+//        httpSecurity.cors(Customizer.withDefaults());
+        httpSecurity
+                .authorizeHttpRequests(request -> request.requestMatchers(PUBLIC_ENDPOINTS)
                 .permitAll()
-                .requestMatchers("/users/lock/*").hasAuthority(PredefinedRole.ROLE_ADMIN)
+                        .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
+                .requestMatchers("/file/search", "file/view/**").permitAll()
+                .requestMatchers("/file/**").hasAuthority(PredefinedRole.ROLE_ADMIN)
+                        .requestMatchers("/admin/**").hasAuthority(PredefinedRole.ROLE_ADMIN)
                 .anyRequest().authenticated());
 
         httpSecurity.oauth2ResourceServer(oauth2 -> oauth2.jwt(jwtConfigurer -> jwtConfigurer
@@ -57,5 +72,19 @@ public class SecurityConfiguration {
         jwtAuthenticationConverter.setJwtGrantedAuthoritiesConverter(jwtGrantedAuthoritiesConverter);
 
         return jwtAuthenticationConverter;
+    }
+
+    @Bean
+    public CorsConfigurationSource corsConfigurationSource() {
+        CorsConfiguration configuration = new CorsConfiguration();
+        configuration.addAllowedOrigin("http://localhost:3000");
+        configuration.addAllowedMethod("*");
+        configuration.addAllowedHeader("*");
+        configuration.setAllowCredentials(true);
+        configuration.setMaxAge(3600L);
+
+        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+        source.registerCorsConfiguration("/**", configuration);
+        return source;
     }
 }
