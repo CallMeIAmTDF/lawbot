@@ -1,0 +1,17 @@
+version: "3.8"
+services:
+  tttn-db:
+    image: mysql
+    container_name: tttn-db
+    ports:
+      - 3306:3306
+    environment:
+      MYSQL_DATABASE: tttn
+      MYSQL_ROOT_PASSWORD: root
+
+  redis-stack:
+    image: redis/redis-stack:latest
+    container_name: redis-stack-local
+    ports:
+      - "6379:6379"
+      - "8001:8001"

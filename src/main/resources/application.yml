@@ -1,21 +1,44 @@
 server:
-  port: 8090
+  port: 8080
 
 spring:
   application:
     name: template
   datasource:
-    url: jdbc:mysql://localhost:3306/db
+    url: jdbc:mysql://localhost:3306/tttn
     username: root
     password: root
   jpa:
     show-sql: true
     hibernate:
       ddl-auto: update
-#  sql:
-#    init:
-#      mode: always
+  sql:
+    init:
+      mode: always
+  cache:
+    type: caffeine
+    caffeine:
+      spec: maximumSize=1000,expireAfterWrite=10m
 
 redis:
   host: localhost
   port: 6379
+
+auth:
+  jwt:
+    accessSignerKey: adE97Xs2F4he7WYk8pQzUBxfRm3TAjo9
+    refreshSignerKey: 4tFg9sKcVhPuA3xMnEjqRZ1YbvLU0dNW
+    valid-duration: 86400
+    refreshable-duration: 2592000
+  verify:
+    register-code-duration: 86400000
+    forgot-password-code-duration: 86400000
+
+rag-service:
+  host: localhost
+  port: 2003
+  protocol: http
+  path:
+    chat: /chat
+    upload: /upload
+    file: /files/
