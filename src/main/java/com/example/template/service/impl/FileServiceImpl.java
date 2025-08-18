@@ -95,6 +95,7 @@ public class FileServiceImpl implements FileService {
     }
 
     @Override
+    @Cacheable(value = "fileCache", key = "#url")
     public byte[] getFile(String url) {
         fileRepository.findFirstByUrl(url).orElseThrow(() -> new NotFoundException("File not found"));
         return ragService.getFile(url);

@@ -24,9 +24,7 @@ import java.io.IOException;
 @CrossOrigin(origins = "*", maxAge = 3600)
 @FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
 public class FileController {
-
     FileService fileService;
-
     @PostMapping("/upload")
     ResponseEntity<ApiResponse<Void>> uploadFile(@ModelAttribute FileCreationRequest request) throws IOException {
         fileService.saveFile(request);
@@ -42,13 +40,11 @@ public class FileController {
     @PostMapping("/search")
     public ResponseEntity<ApiResponse<Page<FileResponse>>> searchFiles(@RequestBody FileSearchRequest request) {
         Page<FileResponse> result = fileService.getFiles(request);
-
         ApiResponse<Page<FileResponse>> apiResponse = ApiResponse.<Page<FileResponse>>builder()
                 .code(HttpStatus.OK.value())
                 .message("Search files successfully")
                 .data(result)
                 .build();
-
         return ResponseEntity.ok(apiResponse);
     }
 
@@ -78,16 +74,7 @@ public class FileController {
 
     @GetMapping("/view/{url}")
     public ResponseEntity<byte[]> getFile(@PathVariable String url) {
-//        byte[] fileData = fileService.getFile(url);
-//        HttpHeaders headers = new HttpHeaders();
-//        headers.setContentType(MediaType.APPLICATION_OCTET_STREAM);
-//        headers.setContentDisposition(ContentDisposition.attachment().filename("downloaded_file").build());
-//        return ResponseEntity.ok()
-//                .headers(headers)
-//                .body(fileData);
-
         byte[] fileData = fileService.getFile(url);
-
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_PDF);
         headers.setContentDisposition(ContentDisposition.inline().filename("file.pdf").build());

@@ -11,18 +11,16 @@ import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 @NoArgsConstructor
 @AllArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE)
-@Entity
 @EntityListeners(AuditingEntityListener.class)
+@Entity
 @Table(name = "chat_messages")
 public class ChatMessage extends BaseEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     Long id;
 
-
     @Column(nullable = false)
     String userId;
-
 
     @Column(nullable = false, columnDefinition = "TEXT")
     String content;
