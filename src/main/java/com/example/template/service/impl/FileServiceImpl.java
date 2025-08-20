@@ -20,6 +20,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.coyote.BadRequestException;
+import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -41,6 +42,7 @@ public class FileServiceImpl implements FileService {
     FileMapper fileMapper;
 
     @Override
+    @CacheEvict(value = "shortCache", allEntries = true)
     public void saveFile(FileCreationRequest request) throws IOException {
 
         if(!FileTypeDetector.detectFileType(request.getFile()).equals("PDF")){
@@ -65,7 +67,7 @@ public class FileServiceImpl implements FileService {
     }
 
     @Override
-    @Cacheable(value = "filesSearchCache", key = "#request.hashCode()")
+    @Cacheable(value = "shortCache", key = "#request.hashCode()")
     public Page<FileResponse> getFiles(FileSearchRequest request) {
         Pageable pageable = PageRequest.of(request.getPage(), request.getSize(), Sort.by("createdAt").descending());
         Specification<File> spec = FileSpecification.search(request);
@@ -74,6 +76,7 @@ public class FileServiceImpl implements FileService {
     }
 
     @Override
+    @CacheEvict(value = "shortCache", allEntries = true)
     public void deleteFile(String id) {
         File file = fileRepository.findById(id)
                 .orElseThrow(() -> new NotFoundException("File not found"));
@@ -82,6 +85,7 @@ public class FileServiceImpl implements FileService {
     }
 
     @Override
+    @CacheEvict(value = "shortCache", allEntries = true)
     public FileResponse updateFile(String id, FileUpdateRequest request) {
         File file = fileRepository.findById(id)
                 .orElseThrow(() -> new NotFoundException("File not found"));
@@ -95,7 +99,7 @@ public class FileServiceImpl implements FileService {
     }
 
     @Override
-    @Cacheable(value = "fileCache", key = "#url")
+    @Cacheable(value = "eternalCache", key = "#url")
     public byte[] getFile(String url) {
         fileRepository.findFirstByUrl(url).orElseThrow(() -> new NotFoundException("File not found"));
         return ragService.getFile(url);

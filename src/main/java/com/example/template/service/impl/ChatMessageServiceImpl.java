@@ -13,6 +13,7 @@ import com.example.template.repository.ChatMessageRepository;
 import com.example.template.repository.FileRepository;
 import com.example.template.repository.UserRepository;
 import com.example.template.service.ChatMessageService;
+import com.example.template.service.SensitiveWordService;
 import com.example.template.service.call.RAGService;
 import com.example.template.util.SecurityUtil;
 import lombok.AccessLevel;
@@ -35,6 +36,7 @@ public class ChatMessageServiceImpl implements ChatMessageService {
     RAGService ragService;
     FileRepository fileRepository;
     ChatMapper chatMapper;
+    SensitiveWordService sensitiveWordService;
 
     @Override
     public List<ChatMessageResponse> getAll() {
@@ -54,6 +56,17 @@ public class ChatMessageServiceImpl implements ChatMessageService {
                 .page(0)
                 .build());
         ChatMessage chatMessage;
+
+        if(sensitiveWordService.contains(request.getQuery())){
+            return ChatMessage.builder()
+                    .userId(userId)
+                    .content("Xin lỗi. Câu hỏi chứa từ ngữ bị cấm: " + sensitiveWordService.findMatchWord(request.getQuery()) + " !!!")
+                    .role(ChatMessage.MessageRole.BOT)
+                    .file(null)
+                    .page(0)
+                    .build();
+        }
+
         try{
             ChatResponse response = ragService.chat(request);
             List<Source> sources = response.getSources();

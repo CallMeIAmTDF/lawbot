@@ -27,6 +27,7 @@ public class SecurityConfiguration {
             "/auth/**",
             "/v3/api-docs/**", "/swagger-ui/**", "/swagger-ui/index.html#/",
             "/users/forgotPassword",
+            "/test/**"
     };
 
     private final CustomJwtDecoder customJwtDecoder;
