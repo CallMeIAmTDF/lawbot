@@ -58,13 +58,15 @@ public class ChatMessageServiceImpl implements ChatMessageService {
         ChatMessage chatMessage;
 
         if(sensitiveWordService.contains(request.getQuery())){
-            return ChatMessage.builder()
+            ChatMessage c = ChatMessage.builder()
                     .userId(userId)
                     .content("Xin lỗi. Câu hỏi chứa từ ngữ bị cấm: " + sensitiveWordService.findMatchWord(request.getQuery()) + " !!!")
                     .role(ChatMessage.MessageRole.BOT)
                     .file(null)
                     .page(0)
                     .build();
+            chatMessageRepository.save(c);
+            return c;
         }
 
         try{
@@ -96,8 +98,6 @@ public class ChatMessageServiceImpl implements ChatMessageService {
         }
         chatMessageRepository.save(chatMessage);
         return chatMessage;
-
-
     }
 
     private String getUid(){
