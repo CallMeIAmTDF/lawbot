@@ -2,7 +2,7 @@ name: Deploy Spring Boot
 on:
   push:
     branches:
-      - main
+      - master
 jobs:
   deploy:
     runs-on: ubuntu-latest
@@ -20,7 +20,7 @@ jobs:
           ssh -o StrictHostKeyChecking=no root@${{ secrets.IP }} << 'EOF'
             cd lawbot
             git fetch --all
-            git reset --hard origin/main
+            git reset --hard origin/master
             tmux ls | cut -d: -f1 | xargs -r -n1 tmux kill-session -t
 
             export RAG_HOST=${secrets.RAG_HOST}
