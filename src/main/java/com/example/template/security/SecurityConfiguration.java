@@ -77,7 +77,7 @@ public class SecurityConfiguration {
                 "http://localhost:3000",
                 "https://lawbot.iamtdf.id.vn",
                 "https://another-domain.com"
-        ));
+        )); 
         configuration.addAllowedMethod("*");
         configuration.addAllowedHeader("*");
         configuration.setAllowCredentials(true);

@@ -5,6 +5,7 @@ import com.example.template.dto.ApiResponse;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ExceptionHandler;
+import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
 @RestControllerAdvice
@@ -57,6 +58,16 @@ public class GlobalException {
         return ResponseEntity.status(HttpStatus.NOT_FOUND).body(apiResponse);
     }
 
+    @ExceptionHandler(RateLimitExceededException.class)
+    public ResponseEntity<ApiResponse<Object>> handleRateLimit(RateLimitExceededException ex) {
+        ApiResponse<Object> apiResponse = new ApiResponse<>();
+        apiResponse.setCode(HttpStatus.TOO_MANY_REQUESTS.value());
+        apiResponse.setMessage(ex.getMessage());
+        return ResponseEntity
+                .status(HttpStatus.TOO_MANY_REQUESTS)
+                .body(apiResponse);
+    }
+
     // Handler fallback cho các lỗi không được bắt riêng
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ApiResponse<Object>> handleGeneric(Exception ex) {
@@ -65,6 +76,8 @@ public class GlobalException {
         apiResponse.setMessage("Internal server error: " + ex.getMessage());
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(apiResponse);
     }
+
+
 }
 
 

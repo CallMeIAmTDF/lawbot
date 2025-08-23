@@ -18,4 +18,9 @@ public class TestController {
     public Boolean hello(@RequestParam(name = "text") String text){
         return sensitiveWordService.contains(text);
     }
+
+    @GetMapping("")
+    public String test(){
+        return "Hello World";
+    }
 }
