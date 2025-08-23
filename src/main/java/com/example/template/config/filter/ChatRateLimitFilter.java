@@ -24,7 +24,7 @@ public class ChatRateLimitFilter implements Filter {
         HttpServletRequest httpRequest = (HttpServletRequest) request;
         HttpServletResponse httpResponse = (HttpServletResponse) response;
 
-        if (httpRequest.getRequestURI().startsWith("/chat")) {
+        if ("POST".equalsIgnoreCase(httpRequest.getMethod()) && httpRequest.getRequestURI().startsWith("/chat")) {
             if (!rateLimiterService.isAllowed("chat")) {
                 httpResponse.setHeader("Access-Control-Allow-Origin", httpRequest.getHeader("Origin"));
                 httpResponse.setHeader("Access-Control-Allow-Credentials", "true");
