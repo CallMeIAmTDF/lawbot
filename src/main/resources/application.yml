@@ -35,7 +35,7 @@ auth:
     forgot-password-code-duration: 86400000
 
 rag-service:
-  host: localhost
+  host: ${RAG_HOST:localhost}
   port: 2003
   protocol: http
   path:
