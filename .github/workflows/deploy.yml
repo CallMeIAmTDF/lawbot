@@ -1,0 +1,27 @@
+name: Deploy Spring Boot
+on:
+  push:
+    branches:
+      - master
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+
+      - name: Setup SSH
+        uses: webfactory/ssh-agent@v0.9.0
+        with:
+          ssh-private-key: ${{ secrets.SSH_KEY }}
+      - name: Deploy to Server
+        run: |
+          ssh -o StrictHostKeyChecking=no root@${{ secrets.IP }} << EOF
+            cd lawbot
+            git fetch --all
+            git reset --hard origin/master
+            tmux ls 2>/dev/null | cut -d: -f1 | xargs -r -n1 tmux kill-session -t
+          
+            tmux new -d -s springapp "RAG_HOST=${{ secrets.RAG_HOST }} mvn spring-boot:run"
+          EOF
