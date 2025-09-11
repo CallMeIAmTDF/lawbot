@@ -1,4 +1,4 @@
-name: Deploy Spring Boot
+name: Deploy Spring Boot with Zero Downtime
 on:
   push:
     branches:
@@ -15,13 +15,66 @@ jobs:
         uses: webfactory/ssh-agent@v0.9.0
         with:
           ssh-private-key: ${{ secrets.SSH_KEY }}
+
       - name: Deploy to Server
         run: |
-          ssh -o StrictHostKeyChecking=no root@${{ secrets.IP }} << EOF
+          ssh -o StrictHostKeyChecking=no root@${{ secrets.IP }} << 'EOF'
             cd lawbot
+
+            # pull github
             git fetch --all
             git reset --hard origin/master
-            tmux ls 2>/dev/null | cut -d: -f1 | xargs -r -n1 tmux kill-session -t
-          
-            tmux new -d -s springapp "RAG_HOST=${{ secrets.RAG_HOST }} mvn spring-boot:run"
+
+            # chỉnh sửa port 8080 / 8081
+            PORT_A=8080
+            PORT_B=8081
+            CURRENT_PORT=$(ss -tuln | grep -E ':8080|:8081' | grep -oE ':[0-9]+' | cut -d: -f2 | head -n1 || echo "$PORT_A")
+
+            # xác định port hiện tại đang chạy / port mới sẽ chạy
+            if [ "$CURRENT_PORT" = "$PORT_A" ]; then
+              NEW_PORT=$PORT_B
+              OLD_PORT=$PORT_A
+            else
+              NEW_PORT=$PORT_A
+              OLD_PORT=$PORT_B
+            fi
+
+            # Khởi tạo app trên port mới
+            tmux new-session -d -s springapp_new "SERVER_PORT=$NEW_PORT RAG_HOST=${{ secrets.RAG_HOST }} mvn spring-boot:run "
+
+            # Chờ khởi chạy / healcheck
+            echo "Waiting  $NEW_PORT..."
+            for i in {1..30}; do
+              if curl -s -f http://localhost:$NEW_PORT/test/actuator/health > /dev/null; then
+                echo "Healthy!"
+                break
+              fi
+              if [ $i -eq 30 ]; then
+                echo "Failed to start!"
+                tmux kill-session -t springapp_new
+                exit 1
+              fi
+              sleep 3
+            done
+
+            # Sua Config
+            sudo sed -i "s/server 127.0.0.1:[0-9]\+;/server 127.0.0.1:$NEW_PORT;/" /etc/nginx/sites-available/api.lawbot.iamtdf.id.vn
+
+            # Reload nginx
+            if sudo nginx -t; then
+              sudo nginx -s reload
+              echo "Nginx reloaded successfully"
+            else
+              echo "Nginx reload failed"
+              tmux kill-session -t springapp_new
+              exit 1
+            fi
+
+            # Xóa tmux cũ
+            if tmux ls 2>/dev/null | grep -q springapp; then
+              tmux kill-session -t springapp
+            fi
+
+            # Chỉnh sửa tmux new -> old
+            tmux rename-session -t springapp_new springapp
           EOF
